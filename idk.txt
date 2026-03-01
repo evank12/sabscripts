@@ -281,7 +281,6 @@ getgenv().TARGET_BRAINROTS = {
     ["Los Amigos"] = true,
     ["Lovin Rose"] = true
 }
-(list of braintos end)
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
