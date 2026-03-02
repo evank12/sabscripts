@@ -73,4 +73,24 @@ getgenv().TARGET_BRAINROTS = {
     ["Tuff Toucan"] = true,
     ["W or L"] = true
 }
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local Lighting = game:GetService("Lighting")
+local function HideUI(child)
+    if child:IsA("ScreenGui") then
+        child.Enabled = false
+    end
+end
+local function ClearBlur(child)
+    if child:IsA("BlurEffect") then
+        child:Destroy()
+    end
+end
+for _, v in ipairs(Lighting:GetChildren()) do
+    ClearBlur(v)
+end
+Lighting.ChildAdded:Connect(ClearBlur)
+CoreGui.ChildAdded:Connect(HideUI)
+PlayerGui.ChildAdded:Connect(HideUI)
 loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/9a91b3ba6fb71423853ec2f885c42d67.lua"))()
