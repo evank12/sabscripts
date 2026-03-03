@@ -1,0 +1,207 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+pcall(function() playerGui:FindFirstChild("FreezeHubUI"):Destroy() end)
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FreezeHubUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.new(0, 260, 0, 188)
+main.Position = UDim2.new(0, 60, 0, 80)
+main.BackgroundColor3 = Color3.fromRGB(8,8,8)
+main.BorderSizePixel = 0
+main.AnchorPoint = Vector2.new(0,0)
+main.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.Parent = main
+mainCorner.CornerRadius = UDim.new(0, 12)
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Parent = main
+mainStroke.Color = Color3.fromRGB(222,37,194)
+mainStroke.Thickness = 1
+mainStroke.Transparency = 0.1
+
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundTransparency = 1
+titleBar.Parent = main
+
+local titleText = Instance.new("TextLabel")
+titleText.Name = "TitleText"
+titleText.Size = UDim2.new(1, -86, 1, 0)
+titleText.Position = UDim2.new(0, 12, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "pink hub"
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.TextYAlignment = Enum.TextYAlignment.Center
+titleText.Font = Enum.Font.Kalam
+titleText.TextSize = 22
+titleText.TextColor3 = Color3.fromRGB(222,37,194)
+titleText.Parent = titleBar
+
+local minusBtn = Instance.new("TextButton")
+minusBtn.Name = "Minimize"
+minusBtn.Size = UDim2.new(0, 26, 0, 26)
+minusBtn.Position = UDim2.new(1, -34, 0, 7)
+minusBtn.AnchorPoint = Vector2.new(0, 0)
+minusBtn.BackgroundColor3 = Color3.fromRGB(183,54,54)
+minusBtn.Text = "-"
+minusBtn.Font = Enum.Font.Kalam
+minusBtn.TextSize = 20
+minusBtn.TextColor3 = Color3.fromRGB(255,255,255)
+minusBtn.Parent = titleBar
+local minusCorner = Instance.new("UICorner")
+minusCorner.Parent = minusBtn
+minusCorner.CornerRadius = UDim.new(0, 6)
+minusBtn.BorderSizePixel = 0
+
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -16, 1, -94)
+content.Position = UDim2.new(0, 8, 0, 44)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+local function createOption(parent, yOffset, labelText, initialState)
+	local row = Instance.new("Frame")
+	row.Name = labelText:gsub("%s","") .. "Row"
+	row.Size = UDim2.new(1, 0, 0, 50)
+	row.Position = UDim2.new(0, 0, 0, yOffset)
+	row.BackgroundColor3 = Color3.fromRGB(46,34,45)
+	row.BorderSizePixel = 0
+	row.Parent = parent
+
+	local rowCorner = Instance.new("UICorner")
+	rowCorner.Parent = row
+	rowCorner.CornerRadius = UDim.new(0, 10)
+
+	local label = Instance.new("TextLabel")
+	label.Name = "Label"
+	label.Size = UDim2.new(1, -94, 1, 0)
+	label.Position = UDim2.new(0, 12, 0, 0)
+	label.BackgroundTransparency = 1
+	label.Text = labelText
+	label.Font = Enum.Font.Kalam
+	label.TextSize = 18
+	label.TextColor3 = Color3.fromRGB(255,227,238)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = row
+
+	local toggleTrack = Instance.new("Frame")
+	toggleTrack.Name = "Track"
+	toggleTrack.Size = UDim2.new(0, 56, 0, 28)
+	toggleTrack.Position = UDim2.new(1, -76, 0.5, -14)
+	toggleTrack.BackgroundColor3 = Color3.fromRGB(70,70,78)
+	toggleTrack.BorderSizePixel = 0
+	toggleTrack.Parent = row
+	local trackCorner = Instance.new("UICorner")
+	trackCorner.Parent = toggleTrack
+	trackCorner.CornerRadius = UDim.new(0, 14)
+
+	local knob = Instance.new("Frame")
+	knob.Name = "Knob"
+	knob.Size = UDim2.new(0, 24, 0, 24)
+	knob.Position = UDim2.new(0, 4, 0.5, -12)
+	knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+	knob.BorderSizePixel = 0
+	knob.Parent = toggleTrack
+	local knobCorner = Instance.new("UICorner")
+	knobCorner.Parent = knob
+	knobCorner.CornerRadius = UDim.new(1, 0)
+
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Name = "ToggleButton"
+	toggleBtn.Text = ""
+	toggleBtn.Size = UDim2.new(1, 0, 1, 0)
+	toggleBtn.BackgroundTransparency = 1
+	toggleBtn.Parent = toggleTrack
+
+	local state = initialState and true or false
+	local function updateVisual()
+		if state then
+			toggleTrack.BackgroundColor3 = Color3.fromRGB(222,37,194)
+			knob.Position = UDim2.new(1, -28, 0.5, -12)
+		else
+			toggleTrack.BackgroundColor3 = Color3.fromRGB(64,64,72)
+			knob.Position = UDim2.new(0, 4, 0.5, -12)
+		end
+	end
+
+	toggleBtn.MouseButton1Click:Connect(function()
+		state = not state
+		updateVisual()
+	end)
+
+	updateVisual()
+	return row, function() return state end
+end
+
+local row1, getState1 = createOption(content, 0, "Freeze Trade", false)
+local row2, getState2 = createOption(content, 56, "Force Accept", true)
+
+local bottomPad = Instance.new("Frame")
+bottomPad.Size = UDim2.new(1, 0, 0, 34)
+bottomPad.Position = UDim2.new(0, 0, 1, -34)
+bottomPad.BackgroundColor3 = Color3.fromRGB(24,6,18)
+bottomPad.BorderSizePixel = 0
+bottomPad.Parent = main
+local bottomCorner = Instance.new("UICorner")
+bottomCorner.Parent = bottomPad
+bottomCorner.CornerRadius = UDim.new(0, 12)
+
+minusBtn.MouseButton1Click:Connect(function()
+	if content.Visible then
+		content.Visible = false
+		main.Size = UDim2.new(0, 260, 0, 44)
+		minusBtn.Text = "+"
+	else
+		content.Visible = true
+		main.Size = UDim2.new(0, 260, 0, 188)
+		minusBtn.Text = "-"
+	end
+end)
+
+do
+	local dragging = false
+	local dragInput, dragStart, startPos
+	local function blockInput(name, state, input) return Enum.ContextActionResult.Sink end
+
+	titleBar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = main.Position
+			ContextActionService:BindAction("BlockInput", blockInput, false, Enum.UserInputType.Touch, Enum.UserInputType.MouseButton1)
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+					ContextActionService:UnbindAction("BlockInput")
+				end
+			end)
+		end
+	end)
+
+	titleBar.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			local delta = input.Position - dragStart
+			main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+end
