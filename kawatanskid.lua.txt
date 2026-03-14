@@ -1,8 +1,3 @@
-Status: 200
-
-Response Content:
-
-
 --// OPTIMIZER FPS (REAL)
 local Lighting = game:GetService("Lighting")
 local optimizerEnabled = false
